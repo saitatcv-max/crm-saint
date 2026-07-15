@@ -242,29 +242,25 @@ export default function ChatRoom() {
 
     if (configured) {
       try {
-        // 1. Insertar el mensaje
-        const { error: msgErr } = await supabase
-          .from('messages')
-          .insert({
-            contact_id: activeContact.id,
-            sender: 'agent',
-            content: messageContent,
-            message_type: 'text'
-          });
-
-        if (msgErr) throw msgErr;
-
-        // 2. Actualizar el último mensaje en la tabla de contactos
-        await supabase
-          .from('contacts')
-          .update({
-            last_message: messageContent,
-            last_message_time: new Date().toISOString()
+        const n8nUrl = import.meta.env.VITE_N8N_OUTGOING_WEBHOOK_URL || 'https://sait-atc-n8n.wdwx8z.easypanel.host/webhook/send-agent-message';
+        
+        const response = await fetch(n8nUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            phone: activeContact.phone,
+            message: messageContent
           })
-          .eq('id', activeContact.id);
+        });
 
+        if (!response.ok) {
+          throw new Error('Error al enviar el mensaje mediante el servidor de n8n');
+        }
       } catch (err) {
         console.error('Error al enviar mensaje:', err);
+        alert('Error: No se pudo enviar el mensaje a WhatsApp. Verifica tu conexión con n8n.');
       }
     } else {
       // Simulación local con mock data
