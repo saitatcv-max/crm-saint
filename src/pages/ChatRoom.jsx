@@ -250,6 +250,7 @@ export default function ChatRoom() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
+            contact_id: activeContact.id,
             phone: activeContact.phone,
             message: messageContent
           })
