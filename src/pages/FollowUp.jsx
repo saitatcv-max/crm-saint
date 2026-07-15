@@ -5,7 +5,8 @@ import {
   Check, 
   Trash, 
   Info,
-  Clock
+  Clock,
+  CheckCircle
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../supabaseClient';
 
@@ -29,6 +30,14 @@ const MOCK_FOLLOWUPS_DASH = [
     status: 'pending',
     scheduled_date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 4).toISOString(), // En 4 días
     notes: 'Hacer seguimiento post-venta. Revisar si la Dra. María necesita soporte adicional.',
+    contacts: { id: '2', name: 'Dra. María Elena', phone: '+584241112233' }
+  },
+  {
+    id: 'f-mock-4',
+    status: 'completed',
+    scheduled_date: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), // Hace 4 horas
+    completed_date: new Date(Date.now() - 1000 * 60 * 60 * 3.5).toISOString(),
+    notes: 'Llamada de bienvenida completada. Canal integrador asignado satisfactoriamente.',
     contacts: { id: '2', name: 'Dra. María Elena', phone: '+584241112233' }
   }
 ];
@@ -64,13 +73,14 @@ export default function FollowUp() {
   const fetchFollowups = async () => {
     setLoading(true);
     try {
-      // Traer los seguimientos pendientes uniendo la información del contacto
+      // Traer los seguimientos pendientes y completados uniendo la información del contacto
       const { data, error } = await supabase
         .from('follow_ups')
         .select(`
           id,
           status,
           scheduled_date,
+          completed_date,
           notes,
           contact_id,
           contacts (
@@ -79,7 +89,7 @@ export default function FollowUp() {
             phone
           )
         `)
-        .eq('status', 'pending')
+        .in('status', ['pending', 'completed'])
         .order('scheduled_date', { ascending: true });
 
       if (!error && data) {
@@ -104,12 +114,11 @@ export default function FollowUp() {
           .eq('id', id);
 
         if (error) alert('Error al completar: ' + error.message);
-        // La suscripción de Supabase actualizará la interfaz automáticamente
       } catch (err) {
         console.error(err);
       }
     } else {
-      setFollowups(prev => prev.filter(f => f.id !== id));
+      setFollowups(prev => prev.map(f => f.id === id ? { ...f, status: 'completed', completed_date: new Date().toISOString() } : f));
       alert('Seguimiento marcado como completado (Simulación).');
     }
   };
@@ -117,28 +126,28 @@ export default function FollowUp() {
   const handleCancel = async (id) => {
     if (configured) {
       try {
+        // En lugar de sólo cambiar estado, los seguimientos cancelados o archivados los borramos
         const { error } = await supabase
           .from('follow_ups')
-          .update({
-            status: 'cancelled'
-          })
+          .delete()
           .eq('id', id);
 
-        if (error) alert('Error al cancelar: ' + error.message);
+        if (error) alert('Error al eliminar: ' + error.message);
       } catch (err) {
         console.error(err);
       }
     } else {
       setFollowups(prev => prev.filter(f => f.id !== id));
-      alert('Seguimiento eliminado/cancelado (Simulación).');
+      alert('Seguimiento eliminado permanentemente (Simulación).');
     }
   };
 
-  // Clasificar seguimientos por fecha
+  // Clasificar seguimientos por fecha y estado
   const getColumns = () => {
     const overdue = [];
     const today = [];
     const upcoming = [];
+    const completed = [];
 
     const now = new Date();
     // Inicio y fin del día de hoy
@@ -146,20 +155,27 @@ export default function FollowUp() {
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
     followups.forEach(item => {
-      const date = new Date(item.scheduled_date);
-      if (date < startOfToday) {
-        overdue.push(item);
-      } else if (date >= startOfToday && date <= endOfToday) {
-        today.push(item);
+      if (item.status === 'completed') {
+        completed.push(item);
       } else {
-        upcoming.push(item);
+        const date = new Date(item.scheduled_date);
+        if (date < startOfToday) {
+          overdue.push(item);
+        } else if (date >= startOfToday && date <= endOfToday) {
+          today.push(item);
+        } else {
+          upcoming.push(item);
+        }
       }
     });
 
-    return { overdue, today, upcoming };
+    // Ordenar completados por completed_date desc
+    completed.sort((a, b) => new Date(b.completed_date || b.scheduled_date) - new Date(a.completed_date || a.scheduled_date));
+
+    return { overdue, today, upcoming, completed };
   };
 
-  const { overdue, today, upcoming } = getColumns();
+  const { overdue, today, upcoming, completed } = getColumns();
 
   const formatScheduledTime = (isoString) => {
     const date = new Date(isoString);
@@ -326,6 +342,53 @@ export default function FollowUp() {
                     >
                       <Check size={12} />
                       Completar
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Columna: COMPLETADOS (HISTORIAL) */}
+        <div className="kanban-column">
+          <div className="kanban-column-header" style={{ borderTop: '3px solid #10b981' }}>
+            <span className="kanban-column-title" style={{ color: '#10b981' }}>
+              <CheckCircle size={18} />
+              Completados / Historial
+            </span>
+            <span className="kanban-column-count">{completed.length}</span>
+          </div>
+          <div className="kanban-column-content">
+            {completed.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                No tienes seguimientos completados todavía.
+              </div>
+            ) : (
+              completed.map(item => (
+                <div key={item.id} className="kanban-card completed" style={{ borderLeft: '3px solid #10b981', opacity: 0.9 }}>
+                  <div className="kanban-card-header">
+                    <span className="kanban-card-name" style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>
+                      {item.contacts?.name || 'Cliente sin nombre'}
+                    </span>
+                    <span className="kanban-card-date" style={{ color: '#10b981' }}>
+                      <Check size={12} />
+                      {item.completed_date ? formatScheduledTime(item.completed_date) : 'Completado'}
+                    </span>
+                  </div>
+                  <p className="kanban-card-notes" style={{ color: 'var(--text-muted)' }}>{item.notes || 'Llamada de seguimiento.'}</p>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                    Tel: {item.contacts?.phone}
+                  </div>
+                  <div className="kanban-card-actions" style={{ justifyContent: 'flex-end' }}>
+                    <button 
+                      onClick={() => handleCancel(item.id)} 
+                      className="btn-card-action"
+                      title="Eliminar permanentemente"
+                      style={{ fontSize: '11px', gap: '4px' }}
+                    >
+                      <Trash size={12} />
+                      Archivar
                     </button>
                   </div>
                 </div>
