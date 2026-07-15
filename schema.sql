@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS contacts (
 
 -- 2. Tabla de Mensajes (Historial de Chats)
 CREATE TABLE IF NOT EXISTS messages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
   sender TEXT NOT NULL, -- 'client', 'agent', 'bot'
   content TEXT DEFAULT '',
