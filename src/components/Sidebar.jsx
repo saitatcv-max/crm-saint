@@ -5,10 +5,11 @@ import {
   ClipboardList, 
   Settings as SettingsIcon, 
   Sun, 
-  Moon 
+  Moon,
+  X
 } from 'lucide-react';
 
-export default function Sidebar({ currentPage, setCurrentPage, theme, toggleTheme }) {
+export default function Sidebar({ currentPage, setCurrentPage, theme, toggleTheme, isOpen, onClose }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'chat', label: 'Chats en Vivo', icon: MessageSquare },
@@ -17,11 +18,18 @@ export default function Sidebar({ currentPage, setCurrentPage, theme, toggleThem
   ];
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+      <div className="sidebar-logo" style={{ justifyContent: 'space-between', width: '100%' }}>
         <h1 className="logo-text">
           sa<span>i</span>nt
         </h1>
+        <button 
+          className="mobile-sidebar-close" 
+          onClick={onClose} 
+          title="Cerrar menú"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <nav style={{ flex: 1 }}>
@@ -32,7 +40,10 @@ export default function Sidebar({ currentPage, setCurrentPage, theme, toggleThem
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => setCurrentPage(item.id)}
+                  onClick={() => {
+                    setCurrentPage(item.id);
+                    if (onClose) onClose();
+                  }}
                   className={`menu-item ${isActive ? 'active' : ''}`}
                   style={{ width: '100%', border: 'none', background: 'none', textAlign: 'left' }}
                 >

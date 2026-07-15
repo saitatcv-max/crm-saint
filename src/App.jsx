@@ -4,11 +4,12 @@ import Dashboard from './pages/Dashboard';
 import ChatRoom from './pages/ChatRoom';
 import FollowUp from './pages/FollowUp';
 import Settings from './pages/Settings';
-import { User } from 'lucide-react';
+import { User, Menu } from 'lucide-react';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [theme, setTheme] = useState('light');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Inicializar el tema desde localStorage
   useEffect(() => {
@@ -44,13 +45,13 @@ export default function App() {
   const getPageTitle = () => {
     switch (currentPage) {
       case 'dashboard':
-        return 'Panel de Control (Dashboard)';
+        return 'Panel de Control';
       case 'chat':
-        return 'Mensajería en Tiempo Real';
+        return 'Mensajería';
       case 'followup':
-        return 'Tablero de Seguimiento (Clientes/Leads)';
+        return 'Seguimiento';
       case 'settings':
-        return 'Configuración y Webhooks';
+        return 'Configuración';
       default:
         return 'CRM saint';
     }
@@ -58,24 +59,43 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {/* Fondo opaco en móviles cuando el menú está abierto */}
+      {isSidebarOpen && (
+        <div 
+          className="sidebar-backdrop" 
+          onClick={() => setIsSidebarOpen(false)} 
+        />
+      )}
+
       {/* Barra de Navegación Lateral */}
       <Sidebar 
         currentPage={currentPage} 
         setCurrentPage={setCurrentPage} 
         theme={theme}
         toggleTheme={toggleTheme}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       {/* Área Principal de Contenido */}
       <main className="main-content">
         {/* Barra Superior */}
         <header className="top-bar">
-          <h2 className="top-bar-title">{getPageTitle()}</h2>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button 
+              className="mobile-menu-toggle" 
+              onClick={() => setIsSidebarOpen(true)}
+              title="Abrir menú"
+            >
+              <Menu size={24} />
+            </button>
+            <h2 className="top-bar-title">{getPageTitle()}</h2>
+          </div>
           
           <div className="top-bar-actions">
             <div className="user-badge">
               <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
-                Asesor Saint
+                Asesor
               </span>
               <div className="user-avatar">
                 <User size={16} />

@@ -8,7 +8,9 @@ import {
   BellRing,
   Clock,
   CheckCircle,
-  FileText
+  FileText,
+  ArrowLeft,
+  Info
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../supabaseClient';
 
@@ -60,6 +62,7 @@ export default function ChatRoom() {
   const [messages, setMessages] = useState([]);
   const [followups, setFollowups] = useState([]);
   const [inputText, setInputText] = useState('');
+  const [activePanel, setActivePanel] = useState('list'); // 'list' | 'chat' | 'details'
   
   // Campos de formulario para el perfil del contacto
   const [editName, setEditName] = useState('');
@@ -210,7 +213,7 @@ export default function ChatRoom() {
     }
   };
 
-  const selectContact = (contact) => {
+  const selectContact = (contact, isUserClick = false) => {
     setActiveContact(contact);
     setEditName(contact.name || '');
     setEditLabel(contact.label || 'Nuevo');
@@ -220,6 +223,10 @@ export default function ChatRoom() {
     
     // Marcar como leído
     markAsRead(contact.id);
+
+    if (isUserClick) {
+      setActivePanel('chat');
+    }
   };
 
   const markAsRead = async (contactId) => {
@@ -434,7 +441,7 @@ export default function ChatRoom() {
   };
 
   return (
-    <div className="chat-container">
+    <div className={`chat-container show-${activePanel}`}>
       {/* 1. Panel Lateral de Contactos */}
       <div className="chat-sidebar">
         <div className="chat-search-bar">
@@ -474,7 +481,7 @@ export default function ChatRoom() {
                 <div 
                   key={contact.id} 
                   className={`chat-item ${isActive ? 'active' : ''}`}
-                  onClick={() => selectContact(contact)}
+                  onClick={() => selectContact(contact, true)}
                 >
                   <div className="chat-item-avatar">
                     {getInitials(contact.name)}
@@ -509,6 +516,15 @@ export default function ChatRoom() {
           <>
             <div className="chat-header">
               <div className="chat-header-info">
+                {/* Botón para volver a la lista en móviles */}
+                <button 
+                  className="mobile-back-button" 
+                  onClick={() => setActivePanel('list')}
+                  title="Volver a la lista"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+
                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--saint-blue)', color: 'white', display: 'flex', alignItems: 'center', justify: 'center', fontWeight: 'bold' }}>
                   {getInitials(activeContact.name)}
                 </div>
@@ -517,7 +533,15 @@ export default function ChatRoom() {
                   <div className="chat-header-phone">{activeContact.phone}</div>
                 </div>
               </div>
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {/* Botón para ver detalles en móviles */}
+                <button 
+                  className="mobile-details-button" 
+                  onClick={() => setActivePanel('details')}
+                  title="Ver detalles"
+                >
+                  <Info size={20} />
+                </button>
                 <span className={`badge badge-${activeContact.label ? activeContact.label.toLowerCase().replace(' ', '-') : 'nuevo'}`}>
                   {activeContact.label}
                 </span>
@@ -570,7 +594,16 @@ export default function ChatRoom() {
       {/* 3. Panel de Detalles y Acciones */}
       {activeContact && (
         <div className="chat-details">
-          <div className="details-header">
+          <div className="details-header" style={{ position: 'relative' }}>
+            {/* Botón para volver al chat en móviles */}
+            <button 
+              className="mobile-details-back" 
+              onClick={() => setActivePanel('chat')}
+              title="Volver al chat"
+            >
+              <ArrowLeft size={20} />
+            </button>
+
             <div className="details-avatar">
               {getInitials(activeContact.name)}
             </div>

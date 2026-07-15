@@ -1146,3 +1146,221 @@ body {
   font-size: 14px;
   max-width: 320px;
 }
+
+/* ==========================================================================
+   Mobile Responsive Adjustments (Media Queries)
+   ========================================================================== */
+
+/* Toggle buttons hidden by default on desktop */
+.mobile-menu-toggle,
+.mobile-sidebar-close,
+.mobile-back-button,
+.mobile-details-button,
+.mobile-details-back {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Layout modifications */
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .top-bar {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 8px;
+  }
+
+  .mobile-menu-toggle:hover {
+    background-color: var(--bg-input);
+  }
+
+  .top-bar-title {
+    font-size: 16px;
+  }
+
+  .user-badge {
+    padding: 4px 8px;
+  }
+  .user-badge span {
+    display: none; /* Ocultar el nombre en pantallas pequeñas */
+  }
+
+  .content-body {
+    padding: 16px;
+    height: calc(100vh - 60px);
+  }
+
+  /* Responsive Sidebar Drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.2);
+    width: 280px;
+    height: 100vh;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    animation: fadeInBackground 0.2s ease-out;
+  }
+
+  @keyframes fadeInBackground {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .mobile-sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-on-sidebar);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+  }
+
+  .mobile-sidebar-close:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: white;
+  }
+
+  /* Chat Room Panels Toggle (Capas al 100% de ancho) */
+  .chat-container {
+    height: calc(100vh - 60px);
+  }
+
+  .chat-sidebar,
+  .chat-main,
+  .chat-details {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+    display: none !important;
+    border-right: none !important;
+    border-left: none !important;
+  }
+
+  .chat-container.show-list .chat-sidebar {
+    display: flex !important;
+  }
+
+  .chat-container.show-chat .chat-main {
+    display: flex !important;
+  }
+
+  .chat-container.show-details .chat-details {
+    display: flex !important;
+  }
+
+  /* Header buttons inside Chat panels */
+  .mobile-back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+  }
+
+  .mobile-back-button:hover {
+    background-color: var(--bg-input);
+  }
+
+  .mobile-details-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+  }
+
+  .mobile-details-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-app);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .details-header {
+    padding-top: 60px !important; /* Espacio para el botón de regresar */
+  }
+
+  .message-bubble {
+    max-width: 85%;
+  }
+
+  /* Dashboard Adjustments */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .chart-placeholder {
+    height: 220px;
+  }
+
+  /* Settings Page */
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Followups Kanban Board spacing */
+  .kanban-board {
+    height: auto;
+    overflow-y: visible;
+  }
+}
