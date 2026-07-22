@@ -79,6 +79,11 @@ export default function ChatRoom() {
   const [configured, setConfigured] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const activeContactRef = useRef(null);
+
+  useEffect(() => {
+    activeContactRef.current = activeContact;
+  }, [activeContact]);
 
   useEffect(() => {
     const isConfig = isSupabaseConfigured();
@@ -168,12 +173,13 @@ export default function ChatRoom() {
         .order('last_message_time', { ascending: false });
       if (!error && data) {
         setContacts(data);
+        const currentActive = activeContactRef.current;
         // Si no hay contacto activo, seleccionar el primero
-        if (!activeContact && data.length > 0) {
+        if (!currentActive && data.length > 0) {
           selectContact(data[0]);
-        } else if (activeContact) {
+        } else if (currentActive) {
           // Mantener actualizado el contacto activo
-          const updated = data.find(c => c.id === activeContact.id);
+          const updated = data.find(c => c.id === currentActive.id);
           if (updated) setActiveContact(updated);
         }
       }
